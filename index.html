@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一碰就連結！NFC智慧感應技術與創新應用</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM (Development / UMD) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Compiler for JSX -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  
+  <!-- Google Fonts: Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #F7F6F2;
+      color: #132535;
+    }
+    /* Custom scrollbar for better aesthetics */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F7F6F2;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2BA99B;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React Code App -->
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // SVG Icons
+    const Icons = {
+      Wifi: () => (
+        <svg className="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      ),
+      Smartphone: () => (
+        <svg className="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2" strokeWidth="2" />
+          <line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="3" strokeLinecap="round" />
+        </svg>
+      ),
+      Compass: () => (
+        <svg className="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" strokeWidth="2" />
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" strokeWidth="2" />
+        </svg>
+      ),
+      Building: () => (
+        <svg className="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      ),
+      Lightbulb: () => (
+        <svg className="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+      ),
+      Wrench: () => (
+        <svg className="w-6 h-6 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+        </svg>
+      ),
+      ChevronRight: () => (
+        <svg className="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+        </svg>
+      ),
+      ChevronLeft: () => (
+        <svg className="w-4 h-4 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      ),
+      CheckCircle: () => (
+        <svg className="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    };
+
+    const INITIAL_PROGRESS = {
+      lab: false,
+      explore: false,
+      community: false,
+      creative: false,
+      tools: false,
+      completedSteps: [],
+      creativeCard: null,
+    };
+
+    function App() {
+      const [currentUnit, setCurrentUnit] = useState('home');
+      const [progress, setProgress] = useState(() => {
+        const saved = localStorage.getItem('nfc_learning_progress');
+        return saved ? JSON.parse(saved) : INITIAL_PROGRESS;
+      });
+
+      useEffect(() => {
+        localStorage.setItem('nfc_learning_progress', JSON.stringify(progress));
+      }, [progress]);
+
+      const markUnitComplete = (unitKey) => {
+        setProgress(prev => ({ ...prev, [unitKey]: true }));
+      };
+
+      const resetProgress = () => {
+        if (window.confirm("確定要重設所有學習進度嗎？")) {
+          setProgress(INITIAL_PROGRESS);
+          localStorage.removeItem('nfc_learning_progress');
+        }
+      };
+
+      const calculateProgressPercent = () => {
+        const units = ['lab', 'explore', 'community', 'creative', 'tools'];
+        const done = units.filter(u => progress[u]).length;
+        return Math.round((done / units.length) * 100);
+      };
+
+      return (
+        <div className="min-h-screen bg-[#F7F6F2] text-[#132535] font-sans flex flex-col justify-between selection:bg-[#2BA99B] selection:text-white">
+          {/* HEADER NAV */}
+          <header className="bg-[#132535] text-white sticky top-0 z-50 shadow-md">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+              <button 
+                onClick={() => setCurrentUnit('home')}
+                className="flex items-center space-x-2 text-left focus:outline-none group"
+              >
+                <div className="w-9 h-9 rounded-full bg-[#2BA99B] flex items-center justify-center text-white font-bold group-hover:scale-105 transition-transform">
+                  <span className="animate-pulse">📶</span>
+                </div>
+                <div>
+                  <span className="text-xs text-[#F4C542] block font-medium tracking-wider">DOC 數位培力課程</span>
+                  <h1 className="text-base sm:text-lg font-bold leading-none tracking-wide">一碰就連結！NFC 智慧感應</h1>
+                </div>
+              </button>
+
+              <div className="flex items-center space-x-3">
+                <div className="hidden md:flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-full text-xs">
+                  <span>整體進度:</span>
+                  <div className="w-20 bg-gray-700 h-2 rounded-full overflow-hidden">
+                    <div className="bg-[#F4C542] h-full transition-all duration-300" style={{ width: `${calculateProgressPercent()}%` }}></div>
+                  </div>
+                  <span className="font-bold text-[#F4C542]">{calculateProgressPercent()}%</span>
+                </div>
+
+                {currentUnit !== 'home' && (
+                  <button
+                    onClick={() => setCurrentUnit('home')}
+                    className="px-3 py-1.5 text-xs sm:text-sm bg-[#2BA99B] hover:bg-[#23887d] text-white font-medium rounded-lg transition-colors flex items-center space-x-1"
+                  >
+                    <span>返回首頁</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* MAIN CONTENT AREA */}
+          <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {currentUnit === 'home' && <HomePage setCurrentUnit={setCurrentUnit} progress={progress} resetProgress={resetProgress} calculateProgressPercent={calculateProgressPercent} />}
+            {currentUnit === 'unit1' && <Unit1Lab markComplete={() => markUnitComplete('lab')} setCurrentUnit={setCurrentUnit} />}
+            {currentUnit === 'unit2' && <Unit2Explore markComplete={() => markUnitComplete('explore')} setCurrentUnit={setCurrentUnit} />}
+            {currentUnit === 'unit3' && <Unit3Community markComplete={() => markUnitComplete('community')} setCurrentUnit={setCurrentUnit} />}
+            {currentUnit === 'unit4' && <Unit4Creative markComplete={() => markUnitComplete('creative')} setCurrentUnit={setCurrentUnit} progress={progress} setProgress={setProgress} />}
+            {currentUnit === 'unit5' && <Unit5Tools markComplete={() => markUnitComplete('tools')} setCurrentUnit={setCurrentUnit} progress={progress} setProgress={setProgress} />}
+          </main>
+
+          {/* FOOTER */}
+          <footer className="bg-[#132535] text-white border-t border-gray-800 py-6 text-center text-xs text-gray-400">
+            <div className="max-w-7xl mx-auto px-4">
+              <p className="mb-2 font-medium">南投縣名間鄉新民數位機會中心（新民DOC）數位教材</p>
+              <p>© 2026 一碰就連結！NFC 智慧感應技術與創新應用版權所有</p>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    // Navigation Helper
+    function UnitNavigation({ current, prev, next, setCurrentUnit, onComplete }) {
+      return (
+        <div className="mt-12 pt-6 border-t border-[#D9D9D9] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex space-x-3 w-full sm:w-auto justify-between">
+            {prev ? (
+              <button 
+                onClick={() => { onComplete && onComplete(); setCurrentUnit(prev.id); }}
+                className="flex items-center space-x-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-[#132535] rounded-lg font-medium text-sm transition-colors"
+              >
+                <Icons.ChevronLeft />
+                <span>上一單元：{prev.title}</span>
+              </button>
+            ) : <div />}
+          </div>
+
+          <div className="flex space-x-3 w-full sm:w-auto justify-end">
+            {next && (
+              <button 
+                onClick={() => { onComplete && onComplete(); setCurrentUnit(next.id); }}
+                className="flex items-center space-x-1 px-5 py-2.5 bg-[#2BA99B] hover:bg-[#21877c] text-white rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all"
+              >
+                <span>完成本章，前往：{next.title}</span>
+                <Icons.ChevronRight />
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Instructor Tip Box
+    function InstructorTip({ guide, tryIt }) {
+      return (
+        <div className="mb-8 bg-amber-50 border-l-4 border-[#F4C542] p-4 rounded-r-lg shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="inline-flex items-center space-x-1 text-xs font-bold bg-[#F4C542] text-[#132535] px-2 py-0.5 rounded">
+              📖 線上課程導引
+            </span>
+          </div>
+          <div className="grid md:grid-cols-2 gap-3 text-sm text-[#132535] mt-1">
+            <div>
+              <strong className="text-[#2BA99B] block mb-0.5">💬 講師引導思考：</strong>
+              <p className="text-gray-700">{guide}</p>
+            </div>
+            <div>
+              <strong className="text-[#2BA99B] block mb-0.5">👉 自己試試看：</strong>
+              <p className="text-gray-700">{tryIt}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Home Page
+    function HomePage({ setCurrentUnit, progress, resetProgress, calculateProgressPercent }) {
+      const units = [
+        { id: 'unit1', title: '單元一：NFC 感應實驗室', desc: '手動拖曳體驗近距離感應，圖解電磁感應原理與 QR Code 差異。', icon: Icons.Smartphone, key: 'lab' },
+        { id: 'unit2', title: '單元二：NFC 生活應用探索館', desc: '開鎖、支付、智慧平安符與導覽，探索生活中的 6 大感應場景。', icon: Icons.Compass, key: 'explore' },
+        { id: 'unit3', title: '單元三：NFC × DOC 智慧社區', desc: '進入虛擬臺灣社區地圖，體驗活動報名、地方導覽與故事牆。', icon: Icons.Building, key: 'community' },
+        { id: 'unit4', title: '單元四：NFC 創意設計室', desc: '選擇情境與需求，一步步產出屬於你的「智慧創意方案卡」。', icon: Icons.Lightbulb, key: 'creative' },
+        { id: 'unit5', title: '單元五：NFC Tools 實作教學站', desc: '圖解 APP 寫入步驟、互動畫面模擬器與常見錯誤快查指南。', icon: Icons.Wrench, key: 'tools' },
+      ];
+
+      return (
+        <div className="space-y-10">
+          <div className="bg-gradient-to-br from-[#132535] via-[#1a3348] to-[#132535] text-white rounded-2xl p-6 sm:p-10 shadow-xl relative overflow-hidden">
+            <div className="relative z-10 max-w-3xl">
+              <span className="inline-block bg-[#2BA99B] text-white text-xs px-3 py-1 rounded-full font-bold tracking-widest uppercase mb-3">
+                新民 DOC 數位培力線上教材
+              </span>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4 tracking-tight leading-tight">
+                一碰就連結！<br />
+                <span className="text-[#F4C542]">NFC 智慧感應技術</span>與創新應用
+              </h1>
+              <p className="text-gray-200 text-base sm:text-lg mb-8 leading-relaxed">
+                從生活中的感應科技出發，探索 NFC 的各種應用，親手製作智慧感應作品，讓科技與社區生活產生更多連結。無需程式基礎，即點即學！
+              </p>
+
+              <div className="flex flex-wrap gap-4 items-center">
+                <button 
+                  onClick={() => setCurrentUnit('unit1')}
+                  className="px-8 py-3.5 bg-[#F4C542] hover:bg-[#e0b232] text-[#132535] font-black rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all text-lg flex items-center space-x-2"
+                >
+                  <span>開始探索課程</span>
+                  <Icons.ChevronRight />
+                </button>
+
+                {calculateProgressPercent() > 0 && (
+                  <button 
+                    onClick={() => {
+                      const firstUnfinished = units.find(u => !progress[u.key]) || units[0];
+                      setCurrentUnit(firstUnfinished.id);
+                    }}
+                    className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-all text-base flex items-center space-x-2"
+                  >
+                    <span>繼續上次進度 ({calculateProgressPercent()}%)</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-[#132535]">互動學習單元</h2>
+                <p className="text-sm text-gray-600">可以自由選擇任一單元開始，完全不受順序限制</p>
+              </div>
+              <button 
+                onClick={resetProgress}
+                className="text-xs text-gray-500 hover:text-red-600 underline"
+              >
+                重置進度
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {units.map((unit, idx) => {
+                const Icon = unit.icon;
+                const isDone = progress[unit.key];
+                return (
+                  <div 
+                    key={unit.id}
+                    onClick={() => setCurrentUnit(unit.id)}
+                    className={`bg-white rounded-xl p-6 border-2 transition-all cursor-pointer group flex flex-col justify-between hover:shadow-lg relative overflow-hidden ${
+                      isDone ? 'border-[#2BA99B]' : 'border-gray-200 hover:border-[#2BA99B]'
+                    }`}
+                  >
+                    {isDone && (
+                      <div className="absolute top-0 right-0 bg-[#2BA99B] text-white px-3 py-1 rounded-bl-xl text-xs font-bold flex items-center space-x-1">
+                        <Icons.CheckCircle />
+                        <span>已完成</span>
+                      </div>
+                    )}
+                    <div>
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                          isDone ? 'bg-[#2BA99B] text-white' : 'bg-[#F7F6F2] text-[#132535] group-hover:bg-[#2BA99B] group-hover:text-white'
+                        }`}>
+                          <Icon />
+                        </div>
+                        <div>
+                          <span className="text-xs text-gray-400 font-mono block">UNIT 0{idx + 1}</span>
+                          <h3 className="text-lg font-bold text-[#132535] group-hover:text-[#2BA99B] transition-colors">
+                            {unit.title.split('：')[1]}
+                          </h3>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-6 line-clamp-2">{unit.desc}</p>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100 flex items-center justify-between text-sm font-semibold text-[#2BA99B]">
+                      <span>點擊進入體驗</span>
+                      <Icons.ChevronRight />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Unit 1
+    function Unit1Lab({ markComplete, setCurrentUnit }) {
+      const [distance, setDistance] = useState(10);
+      const [activeStep, setActiveStep] = useState(1);
+      const [quizAnswer, setQuizAnswer] = useState(null);
+
+      const isSensing = distance <= 2;
+
+      useEffect(() => {
+        if (isSensing) markComplete();
+      }, [isSensing]);
+
+      return (
+        <div className="space-y-8">
+          <div className="border-b border-[#D9D9D9] pb-4">
+            <span className="text-xs font-bold text-[#2BA99B] tracking-wider uppercase">UNIT 01</span>
+            <h2 className="text-3xl font-black text-[#132535]">NFC 感應實驗室</h2>
+            <p className="text-gray-600 text-sm mt-1">理解 NFC（近場通訊）的物理原理與感應距離極限</p>
+          </div>
+
+          <InstructorTip 
+            guide="為什麼悠遊卡或手機感應時必須靠得這麼近？靠太遠會發生什麼事？"
+            tryIt="拉動下方的滑桿，將手機慢慢靠近 NFC 標籤，觀察感應成功的距離範圍！"
+          />
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#D9D9D9]">
+            <h3 className="text-xl font-bold text-[#132535] mb-2 flex items-center space-x-2">
+              <Icons.Smartphone />
+              <span>功能一：手機感應距離模擬器</span>
+            </h3>
+            <p className="text-xs text-gray-500 mb-6">透過調整滑桿來測試感應距離（真正的 NFC 感應距離約在 0 ~ 2 公分內）</p>
+
+            <div className="bg-[#132535] rounded-xl p-8 text-white min-h-[300px] flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute top-4 left-4 bg-white/10 px-3 py-1 rounded-full text-xs font-mono">
+                當前距離: <span className="text-[#F4C542] font-bold text-sm">{distance} cm</span>
+              </div>
+
+              <div className="w-full max-w-md flex items-center justify-between relative my-8">
+                <div 
+                  className="flex flex-col items-center transition-all duration-300 z-10"
+                  style={{ transform: `translateX(${(10 - distance) * 12}px)` }}
+                >
+                  <div className={`w-24 h-44 bg-gray-800 border-4 rounded-2xl flex flex-col items-center justify-between p-2 shadow-2xl relative ${isSensing ? 'border-[#F4C542] ring-4 ring-[#F4C542]/40' : 'border-gray-600'}`}>
+                    <div className="w-8 h-1.5 bg-gray-700 rounded-full mb-1"></div>
+                    <div className="flex-1 w-full bg-gray-900 rounded-lg flex flex-col items-center justify-center p-2 text-center">
+                      {isSensing ? (
+                        <div className="animate-fade-in text-xs text-[#F4C542]">
+                          <Icons.CheckCircle />
+                          <p className="font-bold">感應成功！</p>
+                          <p className="text-[10px] text-gray-300 mt-1">開啟 DOC 官網...</p>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-gray-500">靠近標籤<br />開始感應</p>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-300 mt-2 font-semibold">智慧型手機</span>
+                </div>
+
+                <div className="flex flex-col items-center z-10">
+                  <div className={`w-20 h-20 rounded-full border-4 flex items-center justify-center bg-white text-[#132535] shadow-xl transition-all ${isSensing ? 'border-[#F4C542] scale-110' : 'border-[#2BA99B]'}`}>
+                    <span className="text-2xl">📶</span>
+                  </div>
+                  <span className="text-xs text-gray-300 mt-2 font-semibold">NTAG213 貼紙</span>
+                </div>
+              </div>
+
+              <div className="w-full max-w-md bg-white/10 p-4 rounded-xl border border-white/10 space-y-2">
+                <div className="flex justify-between text-xs text-gray-300 font-semibold">
+                  <span>0 cm (貼近)</span>
+                  <span>2 cm (極限)</span>
+                  <span>10 cm (太遠)</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="10" 
+                  step="0.5"
+                  value={distance}
+                  onChange={(e) => setDistance(parseFloat(e.target.value))}
+                  className="w-full accent-[#2BA99B] cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+
+          <UnitNavigation 
+            current="unit1" 
+            next={{ id: 'unit2', title: 'NFC 生活應用探索館' }} 
+            setCurrentUnit={setCurrentUnit}
+            onComplete={markComplete}
+          />
+        </div>
+      );
+    }
+
+    // Unit 2
+    function Unit2Explore({ markComplete, setCurrentUnit }) {
+      const [selectedCase, setSelectedCase] = useState(0);
+
+      const cases = [
+        {
+          id: 'traffic',
+          title: '1. 交通票證與門禁系統',
+          scenario: '搭乘公車、捷運或進出社區大樓大門。',
+          tech: '採用加密的 NFC 晶片與專用讀卡機系統。',
+          canCopy: '❌ 一般貼紙無法複製！涉及安全金鑰，需由發卡機構核發。',
+          innovation: '結合社區關懷卡、長者樂齡通關認證。'
+        },
+        {
+          id: 'pay',
+          title: '2. 手機感應行動支付',
+          scenario: '超商買東西時將手機靠近 POS 刷卡機。',
+          tech: '手機模擬加密信用卡卡號（Tokenization）。',
+          canCopy: '❌ 無法複製。金流經過銀行高規格安全加密機制。',
+          innovation: ''
+        },
+        {
+          id: 'card',
+          title: '3. NFC 數位電子名片',
+          scenario: '參加社團活動或商務拜訪時交流聯絡方式。',
+          tech: '貼紙內寫入 vCard 格式或個人專屬網址。',
+          canCopy: '✅ 可自己動手做！只需一般 NTAG213 貼紙寫入網址。',
+          innovation: 'DOC 志工證、社區小幫手服務名片。'
+        },
+        {
+          id: 'charm',
+          title: '4. NFC 智慧平安符',
+          scenario: '長輩佩戴平安符，感應可顯示緊急聯絡電話與用藥提醒。',
+          tech: '將防水 NFC 小型晶片縫入香火袋或平安符內。',
+          canCopy: '✅ 可自己動手做！將關懷網址寫入貼紙並放入平安符。',
+          innovation: '社區走失預防、長輩緊急聯絡卡。'
+        },
+        {
+          id: 'guide',
+          title: '5. 智慧導覽與文化展示',
+          scenario: '遊客將手機靠近文化展品標牌，跳出語音導覽影音。',
+          tech: '寫入 YouTube 影片連結或語音導覽網址。',
+          canCopy: '✅ 可自己動手做！非常適合 DOC 地方數位采風計畫。',
+          innovation: '社區文化路徑導覽、老照片故事牆。'
+        },
+        {
+          id: 'product',
+          title: '6. 智慧商品與地方品牌',
+          scenario: '購買社區小農米粉或蜂蜜時，感應包裝查看產地履歷。',
+          tech: '寫入生產履歷網址或品牌敘事頁面。',
+          canCopy: '✅ 可自己動手做！大幅提升在地農特產品科技質感。',
+          innovation: '社區產銷班品牌履歷、手作DIY說明。'
+        }
+      ];
+
+      useEffect(() => { markComplete(); }, []);
+
+      const currentData = cases[selectedCase];
+
+      return (
+        <div className="space-y-8">
+          <div className="border-b border-[#D9D9D9] pb-4">
+            <span className="text-xs font-bold text-[#2BA99B] tracking-wider uppercase">UNIT 02</span>
+            <h2 className="text-3xl font-black text-[#132535]">NFC 生活應用探索館</h2>
+            <p className="text-gray-600 text-sm mt-1">探索 6 大生活場景，分辨哪些可以自己 DIY，哪些涉及金流安全</p>
+          </div>
+
+          <InstructorTip 
+            guide="NFC 不只能拿來刷卡付款，大家想想看日常生活還有在哪裡看過『嗶一下』的功能？"
+            tryIt="點擊下方 6 個不同的生活卡片，看看哪一些是我們可以使用十幾塊錢的貼紙自己做出來的！"
+          />
+
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 space-y-3">
+              {cases.map((c, idx) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCase(idx)}
+                  className={`w-full p-4 rounded-xl border-2 text-left flex items-center space-x-3 transition-all ${
+                    selectedCase === idx 
+                      ? 'border-[#2BA99B] bg-white shadow-md' 
+                      : 'border-gray-200 bg-[#F7F6F2] hover:bg-white'
+                  }`}
+                >
+                  <div className="font-bold text-sm text-[#132535]">{c.title}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#D9D9D9] shadow-sm">
+              <h3 className="text-2xl font-bold text-[#132535] mb-4">{currentData.title}</h3>
+              <div className="space-y-4 text-sm text-[#132535]">
+                <div>
+                  <strong className="text-gray-500 text-xs block mb-1">應用情境</strong>
+                  <p className="bg-[#F7F6F2] p-3 rounded-lg border border-gray-200">{currentData.scenario}</p>
+                </div>
+                <div>
+                  <strong className="text-gray-500 text-xs block mb-1">技術與安全機制</strong>
+                  <p className="text-gray-700">{currentData.tech}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-amber-50 border border-[#F4C542]">
+                  <strong className="text-[#132535] text-xs block font-bold mb-1">🛠️ 能否用一般 NFC 貼紙自行實現？</strong>
+                  <p className="font-semibold">{currentData.canCopy}</p>
+                </div>
+                {currentData.innovation && (
+                  <div>
+                    <strong className="text-[#2BA99B] text-xs block mb-1 font-bold">💡 適合 DOC 延伸的創新方向</strong>
+                    <p className="text-gray-700 font-medium">{currentData.innovation}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <UnitNavigation 
+            current="unit2" 
+            prev={{ id: 'unit1', title: 'NFC 感應實驗室' }}
+            next={{ id: 'unit3', title: 'NFC × DOC 智慧社區' }} 
+            setCurrentUnit={setCurrentUnit}
+            onComplete={markComplete}
+          />
+        </div>
+      );
+    }
+
+    // Unit 3
+    function Unit3Community({ markComplete, setCurrentUnit }) {
+      useEffect(() => { markComplete(); }, []);
+
+      return (
+        <div className="space-y-8">
+          <div className="border-b border-[#D9D9D9] pb-4">
+            <span className="text-xs font-bold text-[#2BA99B] tracking-wider uppercase">UNIT 03</span>
+            <h2 className="text-3xl font-black text-[#132535]">NFC × DOC 智慧社區</h2>
+            <p className="text-gray-600 text-sm mt-1">體驗科技如何深入社區服務與地方文化</p>
+          </div>
+
+          <InstructorTip 
+            guide="如果要在我們自己的社區推動智慧化，大家最希望在哪個地點設置 NFC 感應貼紙？"
+            tryIt="點擊地圖上的社區地點，感受實體社區結合數位感應的便利性！"
+          />
+
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 text-center space-y-4">
+            <p className="text-gray-700 font-bold">🏛️ 社區活動中心 ｜ ⛩️ 地方文化景點 ｜ 🍎 農產品展示區 ｜ 💻 DOC 數位教室</p>
+            <p className="text-xs text-gray-500">將 NFC 貼紙放在社區各大場域，讓長輩與遊客體驗「嗶一下」就能完成報名、聽故事或連網線！</p>
+          </div>
+
+          <UnitNavigation 
+            current="unit3" 
+            prev={{ id: 'unit2', title: 'NFC 生活應用探索館' }}
+            next={{ id: 'unit4', title: 'NFC 創意設計室' }} 
+            setCurrentUnit={setCurrentUnit}
+            onComplete={markComplete}
+          />
+        </div>
+      );
+    }
+
+    // Unit 4
+    function Unit4Creative({ markComplete, setCurrentUnit, progress, setProgress }) {
+      const [title, setTitle] = useState('長輩智慧健康卡');
+
+      const handleSaveCard = () => {
+        setProgress(prev => ({ ...prev, creative: true }));
+        markComplete();
+        alert("🎉 恭喜！你的創意方案卡已成功儲存！");
+      };
+
+      return (
+        <div className="space-y-8">
+          <div className="border-b border-[#D9D9D9] pb-4">
+            <span className="text-xs font-bold text-[#2BA99B] tracking-wider uppercase">UNIT 04</span>
+            <h2 className="text-3xl font-black text-[#132535]">NFC 創意設計室</h2>
+            <p className="text-gray-600 text-sm mt-1">動動腦！設計屬於你的智慧社區方案</p>
+          </div>
+
+          <InstructorTip 
+            guide="想像一下在你的生活或社區中，有什麼問題可以透過『嗶一下』來解決？"
+            tryIt="輸入你的作品名稱並按儲存卡片！"
+          />
+
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 space-y-4 max-w-md mx-auto">
+            <label className="block text-xs font-bold text-gray-600">為你的創意作品命名：</label>
+            <input 
+              type="text" 
+              value={title} 
+              onChange={e => setTitle(e.target.value)} 
+              className="w-full p-2.5 border rounded-lg text-sm font-bold"
+            />
+            <button 
+              onClick={handleSaveCard} 
+              className="w-full py-3 bg-[#F4C542] hover:bg-[#e0b232] font-black rounded-xl"
+            >
+              儲存創意方案卡
+            </button>
+          </div>
+
+          <UnitNavigation 
+            current="unit4" 
+            prev={{ id: 'unit3', title: 'NFC × DOC 智慧社區' }}
+            next={{ id: 'unit5', title: 'NFC Tools 實作教學站' }} 
+            setCurrentUnit={setCurrentUnit}
+            onComplete={markComplete}
+          />
+        </div>
+      );
+    }
+
+    // Unit 5
+    function Unit5Tools({ markComplete, setCurrentUnit }) {
+      useEffect(() => { markComplete(); }, []);
+
+      return (
+        <div className="space-y-8">
+          <div className="border-b border-[#D9D9D9] pb-4">
+            <span className="text-xs font-bold text-[#2BA99B] tracking-wider uppercase">UNIT 05</span>
+            <h2 className="text-3xl font-black text-[#132535]">NFC Tools 實作教學站</h2>
+            <p className="text-gray-600 text-sm mt-1">手把手圖解寫入教學與實作指引</p>
+          </div>
+
+          <InstructorTip 
+            guide="拿出實體手機與 NFC 貼紙，開啟 NFC Tools APP 準備寫入！"
+            tryIt="確認手機 NFC 開啟 ➔ 開啟 APP ➔ 點選 Write ➔ 新增 URL ➔ 靠卡寫入！"
+          />
+
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 text-center space-y-3">
+            <h3 className="text-lg font-bold text-[#132535]">📱 寫入 7 大步驟提示</h3>
+            <p className="text-sm text-gray-600">確認開啟 NFC ➔ 開啟 NFC Tools ➔ Write ➔ Add a record ➔ URL ➔ 輸入網址 ➔ 靠近貼紙完成寫入！</p>
+          </div>
+
+          <UnitNavigation 
+            current="unit5" 
+            prev={{ id: 'unit4', title: 'NFC 創意設計室' }}
+            setCurrentUnit={setCurrentUnit}
+            onComplete={markComplete}
+          />
+        </div>
+      );
+    }
+
+    // Render React to Root
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
